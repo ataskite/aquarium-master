@@ -24,7 +24,7 @@
 | 对象存储 | MinIO、AWS S3 SDK |
 | 网关 | Caddy |
 | 包管理 | pnpm workspace、Corepack |
-| 部署 | Docker Compose、GitHub Actions SSH 部署 |
+| 部署 | Docker Compose |
 
 ## 目录结构
 
@@ -39,7 +39,6 @@
 │       └── src/             # 页面、状态与接口封装
 ├── infra/
 │   └── Caddyfile            # Caddy 网关配置
-├── .github/workflows/       # GitHub Actions 部署流水线
 ├── docker-compose.yml       # PostgreSQL、MinIO、API、Caddy
 ├── package.json             # 根 workspace 脚本
 ├── pnpm-workspace.yaml      # pnpm workspace 配置
@@ -267,22 +266,11 @@ docker compose up -d --build api caddy
 
 Caddy 默认读取 `infra/Caddyfile`，通过 `APP_DOMAIN` 配置域名；未配置时使用 `localhost`。`/api/*` 会反向代理到 API 容器。
 
-## GitHub Actions 部署
-
-`.github/workflows/deploy.yml` 提供 SSH 部署流水线。推送到 `main` 或 `master` 后，会在服务器执行拉取代码、安装依赖、部署 Prisma migration，并重建 `api` 与 `caddy`。
-
-需要配置这些 GitHub Secrets：
-
-- `TENCENT_LIGHTHOUSE_HOST`
-- `TENCENT_LIGHTHOUSE_USER`
-- `TENCENT_LIGHTHOUSE_SSH_KEY`
-- `DEPLOY_PATH`
-
 ## 常见问题
 
 ### API 启动后数据库连不上
 
-确认 PostgreSQL 容器已启动，并且 `.env` 中 `DATABASE_URL` 的端口与 `POSTGRES_PORT` 一致。本项目默认使用宿主机 `5432`，避免和本机 `5432` 冲突。
+确认 PostgreSQL 容器已启动，并且 `.env` 中 `DATABASE_URL` 的端口与 `POSTGRES_PORT` 一致。本项目默认使用标准端口 `5432`。
 
 ### 小程序请求不到接口
 
