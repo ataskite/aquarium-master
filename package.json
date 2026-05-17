@@ -1,0 +1,24 @@
+{
+  "name": "aquarium-master",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.1.2",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:api": "pnpm --filter @aquarium/api dev",
+    "dev:weapp": "pnpm --filter @aquarium/weapp dev",
+    "dev:h5": "pnpm --filter @aquarium/weapp dev:h5",
+    "build": "pnpm -r build",
+    "build:h5": "pnpm --filter @aquarium/weapp build:h5",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "prisma:generate": "pnpm --filter @aquarium/api prisma:generate",
+    "prisma:migrate": "pnpm --filter @aquarium/api prisma:migrate",
+    "docker:up": "docker compose up -d postgres minio"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "npm-run-all2": "^8.0.4",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,11 @@
+{$APP_DOMAIN:localhost} {
+  encode gzip zstd
+
+  handle /api/* {
+    reverse_proxy api:3000
+  }
+
+  handle {
+    respond "Aquarium Master API is running" 200
+  }
+}

@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AquariumStatus {
+  RUNNING
+  MAINTENANCE
+  PAUSED
+}
+
+enum ReminderStatus {
+  PENDING
+  DONE
+}
+
+model User {
+  id         String     @id @default(cuid())
+  openId     String?    @unique
+  nickname   String?
+  avatarUrl  String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  aquariums  Aquarium[]
+  reminders  Reminder[]
+}
+
+model Aquarium {
+  id                 String              @id @default(cuid())
+  userId             String?
+  name               String
+  coverUrl           String?
+  volumeLiters       Int?
+  lengthCm           Int?
+  widthCm            Int?
+  heightCm           Int?
+  species            String?
+  status             AquariumStatus     @default(RUNNING)
+  healthScore        Int                 @default(92)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  user               User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  waterRecords       WaterQualityRecord[]
+  maintenanceRecords MaintenanceRecord[]
+  reminders          Reminder[]
+}
+
+model WaterQualityRecord {
+  id          String    @id @default(cuid())
+  aquariumId  String
+  temperature Float?
+  ph          Float?
+  ammonia     Float?
+  nitrite     Float?
+  nitrate     Float?
+  tds         Float?
+  note        String?
+  recordedAt  DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  aquarium    Aquarium  @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+}
+
+model MaintenanceRecord {
+  id          String    @id @default(cuid())
+  aquariumId  String
+  type        String
+  note        String?
+  imageUrl    String?
+  happenedAt  DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  aquarium    Aquarium  @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+}
+
+model Reminder {
+  id          String          @id @default(cuid())
+  userId      String?
+  aquariumId  String?
+  title       String
+  note        String?
+  dueAt       DateTime
+  repeatRule  String?
+  status      ReminderStatus  @default(PENDING)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  user        User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  aquarium    Aquarium?       @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+}
+
+model KnowledgeArticle {
+  id        String   @id @default(cuid())
+  title     String
+  category  String
+  summary   String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FileObject {
+  id        String   @id @default(cuid())
+  bucket    String
+  objectKey String   @unique
+  url       String
+  mimeType  String?
+  size      Int?
+  createdAt DateTime @default(now())
+}
