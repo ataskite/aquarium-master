@@ -7,3 +7,4 @@ apps/weapp/dist
 apps/api/generated
 *.log
 .pnpm-store
+.idea

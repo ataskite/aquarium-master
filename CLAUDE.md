@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Install dependencies
 corepack enable && corepack pnpm install
 
-# Start infra (PostgreSQL on :55432, MinIO on :9000/:9001)
+# Start infra (PostgreSQL on :5432, MinIO on :9000/:9001)
 docker compose up -d postgres minio
 
 # Database setup (after infra is running)
@@ -83,7 +83,7 @@ GitHub Actions SSH deploy on push to `main`/`master`. Server runs Docker Compose
 
 Copy `.env.example` to `.env`. Key variables:
 
-- `DATABASE_URL` — PostgreSQL connection (default port 55432 to avoid conflicts)
+- `DATABASE_URL` — PostgreSQL connection (default port 5432 to avoid conflicts)
 - `MINIO_*` — MinIO/S3 config
 - `WECHAT_APP_ID` / `WECHAT_APP_SECRET` — WeChat credentials (leave empty for mock mode)
 - `AI_PROVIDER` — `echo` (default) or `http` with `AI_HTTP_ENDPOINT` / `AI_HTTP_API_KEY`

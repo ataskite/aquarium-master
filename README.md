@@ -72,8 +72,8 @@ cp .env.example .env
 | --- | --- | --- |
 | `API_PORT` | NestJS API 监听端口 | `3000` |
 | `WEB_APP_ORIGIN` | API CORS 允许来源，多个值用英文逗号分隔 | `http://localhost:10086` |
-| `DATABASE_URL` | Prisma PostgreSQL 连接串 | `postgresql://aquarium:aquarium@localhost:55432/aquarium?schema=public` |
-| `POSTGRES_PORT` | 本地 PostgreSQL 映射端口 | `55432` |
+| `DATABASE_URL` | Prisma PostgreSQL 连接串 | `postgresql://aquarium:aquarium@localhost:5432/aquarium?schema=public` |
+| `POSTGRES_PORT` | 本地 PostgreSQL 映射端口 | `5432` |
 | `MINIO_ENDPOINT` | 服务端访问 MinIO 的地址 | `http://localhost:9000` |
 | `MINIO_PUBLIC_ENDPOINT` | 返回给客户端访问文件的公开地址 | `http://localhost:9000` |
 | `MINIO_BUCKET` | 文件上传 bucket | `aquarium` |
@@ -105,7 +105,7 @@ docker compose up -d postgres minio
 本地端口：
 
 - API：`http://localhost:3000/api`
-- PostgreSQL：`localhost:55432`
+- PostgreSQL：`localhost:5432`
 - MinIO API：`http://localhost:9000`
 - MinIO 控制台：`http://localhost:9001`
 
@@ -282,7 +282,7 @@ Caddy 默认读取 `infra/Caddyfile`，通过 `APP_DOMAIN` 配置域名；未配
 
 ### API 启动后数据库连不上
 
-确认 PostgreSQL 容器已启动，并且 `.env` 中 `DATABASE_URL` 的端口与 `POSTGRES_PORT` 一致。本项目默认使用宿主机 `55432`，避免和本机 `5432` 冲突。
+确认 PostgreSQL 容器已启动，并且 `.env` 中 `DATABASE_URL` 的端口与 `POSTGRES_PORT` 一致。本项目默认使用宿主机 `5432`，避免和本机 `5432` 冲突。
 
 ### 小程序请求不到接口
 
