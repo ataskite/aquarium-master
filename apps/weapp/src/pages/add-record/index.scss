@@ -1,0 +1,241 @@
+.record-page {
+  padding-bottom: 68px;
+}
+
+.record-header {
+  padding: 24px 4px 8px;
+}
+
+.record-header .hero-title {
+  color: #071d3b;
+}
+
+.record-header .hero-subtitle {
+  color: #617993;
+}
+
+.segment {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 22px 0;
+  padding: 8px;
+  border: 1px solid rgba(207, 235, 250, 0.8);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.segment Text,
+.segment text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  border-radius: 17px;
+  color: #5f7590;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.segment .active {
+  color: #0b6ff1;
+  background: #fff;
+  box-shadow: 0 8px 18px rgba(11, 114, 240, 0.12);
+}
+
+.record-segment {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.trend-card {
+  padding: 22px;
+  border: 1px solid rgba(207, 235, 250, 0.9);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 90% 12%, rgba(11, 114, 240, 0.1), transparent 20%),
+    rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 28px rgba(24, 95, 160, 0.09);
+}
+
+.trend-card .muted,
+.trend-card .strong {
+  display: block;
+}
+
+.record-summary {
+  margin-bottom: 4px;
+}
+
+.record-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.record-kpi-grid > View,
+.record-kpi-grid > view {
+  min-width: 0;
+  padding: 15px 14px;
+  border-radius: 17px;
+  background: linear-gradient(180deg, rgba(239, 248, 255, 0.96), rgba(255, 255, 255, 0.82));
+}
+
+.record-kpi-grid .strong {
+  margin-top: 6px;
+  font-size: 25px;
+}
+
+.trend-chart {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  align-items: end;
+  gap: 14px;
+  height: 168px;
+  margin-top: 24px;
+  padding: 18px;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(10, 114, 240, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(10, 114, 240, 0.08) 1px, transparent 1px);
+  background-size: 100% 42px, 82px 100%;
+}
+
+.trend-chart Text,
+.trend-chart text {
+  display: block;
+  border-radius: 999px 999px 10px 10px;
+  background: linear-gradient(180deg, #0b72f0, #20cef0);
+  box-shadow: 0 8px 18px rgba(11, 114, 240, 0.16);
+}
+
+.trend-chart Text:nth-child(1),
+.trend-chart text:nth-child(1) {
+  height: 70px;
+}
+
+.trend-chart Text:nth-child(2),
+.trend-chart text:nth-child(2) {
+  height: 92px;
+}
+
+.trend-chart Text:nth-child(3),
+.trend-chart text:nth-child(3) {
+  height: 110px;
+}
+
+.trend-chart Text:nth-child(4),
+.trend-chart text:nth-child(4) {
+  height: 124px;
+}
+
+.trend-chart Text:nth-child(5),
+.trend-chart text:nth-child(5) {
+  height: 128px;
+}
+
+.trend-chart Text:nth-child(6),
+.trend-chart text:nth-child(6) {
+  height: 104px;
+}
+
+.trend-chart Text:nth-child(7),
+.trend-chart text:nth-child(7) {
+  height: 136px;
+}
+
+.record-note {
+  min-height: 132px;
+}
+
+.record-type-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 24px 0 18px;
+}
+
+.record-type-card {
+  min-height: 118px;
+  box-sizing: border-box;
+  padding: 22px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 20px;
+  color: #fff;
+  background: linear-gradient(135deg, #0a69f4, #14b7f3);
+  box-shadow: 0 14px 30px rgba(0, 106, 230, 0.16);
+}
+
+.record-type-card.feed {
+  background: linear-gradient(135deg, #0fa878, #27d29c);
+}
+
+.record-type-card.change {
+  background: linear-gradient(135deg, #009fd9, #16d5cf);
+}
+
+.record-type-card Text:first-child,
+.record-type-card text:first-child {
+  display: block;
+  font-size: 27px;
+  font-weight: 800;
+}
+
+.record-type-card .muted {
+  display: block;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.record-save-button {
+  margin-top: 10px;
+}
+
+.record-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.record-item {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(207, 235, 250, 0.9);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 24px rgba(24, 95, 160, 0.08);
+}
+
+.record-dot {
+  width: 16px;
+  height: 16px;
+  margin-top: 12px;
+  border-radius: 999px;
+  background: #0b72f0;
+  box-shadow: 0 0 0 8px rgba(11, 114, 240, 0.1);
+}
+
+.record-item.feed .record-dot {
+  background: #12b981;
+  box-shadow: 0 0 0 8px rgba(18, 185, 129, 0.12);
+}
+
+.record-item.water-change .record-dot {
+  background: #0fb9d0;
+  box-shadow: 0 0 0 8px rgba(15, 185, 208, 0.12);
+}
+
+.record-item-main {
+  min-width: 0;
+}
+
+.record-detail {
+  display: block;
+  margin-top: 8px;
+  color: #5c728b;
+  font-size: 22px;
+  line-height: 1.45;
+}

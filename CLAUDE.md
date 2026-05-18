@@ -1,90 +1,121 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file gives Claude Code the current working context for this repository. Keep it synchronized with `README.md` and `AGENTS.md` whenever project structure, scripts, verification gates, or deployment assumptions change.
 
 ## Project Overview
 
-水族大师 (Aquarium Master) — a WeChat Mini Program for aquarium management. Monorepo with pnpm workspaces containing a NestJS API backend and a Taro React frontend.
+水族大师 (Aquarium Master) is a WeChat Mini Program demo for aquarium management. The repo is a pnpm workspace:
+
+- `apps/api` — NestJS 11 + Prisma API service.
+- `apps/weapp` — Taro 4 + React 18 mini program, also runnable as H5.
+- Root files — shared Docker Compose, TypeScript config, pnpm workspace config, `.env.example`, Caddy config, and `prototype.png`.
+
+The app covers aquarium profiles, water-quality records, maintenance logs, reminders, knowledge-base articles, image upload through MinIO/S3, and AI chat. The default AI provider is `echo` so the demo can run without external model services.
 
 ## Commands
 
+Use Corepack with the pinned package manager (`pnpm@11.1.2`):
+
 ```bash
-# Install dependencies
-corepack enable && corepack pnpm install
+corepack enable
+corepack pnpm install
+```
 
-# Start infra (PostgreSQL on :5432, MinIO on :9000/:9001)
-docker compose up -d postgres minio
+Local dependencies:
 
-# Database setup (after infra is running)
+```bash
+corepack pnpm docker:up
+# equivalent: docker compose up -d postgres minio
+```
+
+Database:
+
+```bash
 corepack pnpm prisma:generate
-corepack pnpm prisma:migrate          # dev: creates migration
-corepack pnpm --filter @aquarium/api prisma:migrate:deploy  # prod: applies migrations
+corepack pnpm prisma:migrate
+corepack pnpm --filter @aquarium/api prisma:migrate:deploy
+```
 
-# Development
-corepack pnpm dev                     # all apps in parallel
-corepack pnpm dev:api                 # NestJS API only (http://localhost:3000/api)
-corepack pnpm dev:weapp               # Taro WeChat mini program (open apps/weapp in WeChat DevTools)
-corepack pnpm dev:h5                  # Taro H5 preview (http://localhost:10086)
+Development:
 
-# Build
-corepack pnpm build
+```bash
+corepack pnpm dev        # API + frontend watch tasks
+corepack pnpm dev:api    # http://localhost:3000/api
+corepack pnpm dev:weapp  # WeChat mini program build/watch
+corepack pnpm dev:h5     # http://localhost:10086
+```
 
-# Type checking & linting (no separate test suite)
+Verification and builds:
+
+```bash
 corepack pnpm typecheck
 corepack pnpm lint
+corepack pnpm build
+corepack pnpm build:h5
 ```
+
+There is no dedicated unit-test script currently configured. Treat `typecheck`, `lint`, and relevant builds as the minimum handoff gate.
 
 ## Architecture
 
-### Monorepo Layout
-
-- `apps/api/` — NestJS + Prisma backend (`@aquarium/api`)
-- `apps/weapp/` — Taro + React + NutUI frontend (`@aquarium/weapp`)
-- `infra/Caddyfile` — Caddy reverse proxy config
-- `docker-compose.yml` — PostgreSQL, MinIO, API, Caddy containers
-
 ### API (`apps/api`)
 
-Standard NestJS modular structure. Global prefix `/api`, CORS enabled. Modules map 1:1 to domains:
+The API uses standard NestJS modules with global `/api` prefix and Prisma for PostgreSQL access. Keep domain logic in modules under `apps/api/src`, and keep external adapters isolated.
 
-- `prisma/` — shared PrismaService (replaces `@prisma/client` direct usage)
-- `auth/` — WeChat login (`POST /api/auth/wechat-login`), mock mode returns `mock-openid-${code}`
-- `users/` — user profile CRUD
-- `aquariums/` — fish tank CRUD (core entity, owned by User)
-- `water-quality/` — water parameter records, cascade-deleted with aquarium
-- `maintenance/` — maintenance log entries, cascade-deleted with aquarium
-- `ai/` — AI chat (`POST /api/ai/chat`), pluggable provider (`AI_PROVIDER` env)
-- `storage/` — MinIO/S3 file upload via `@aws-sdk/client-s3`
-- `reminders/` — user reminders with PENDING/DONE status
-- `knowledge/` — read-only knowledge base articles
+- `auth` — WeChat login at `POST /api/auth/wechat-login`; empty WeChat credentials return `mock-openid-${code}`.
+- `users` — user profile read/update.
+- `aquariums` — aquarium CRUD and detail aggregation.
+- `water-quality` — water parameter records.
+- `maintenance` — maintenance log records.
+- `reminders` — reminder CRUD with pending/done status.
+- `knowledge` — read-only knowledge-base articles.
+- `ai` — AI chat with `echo` and HTTP provider options.
+- `storage` — MinIO/S3-compatible upload.
+- `prisma` — shared Prisma service.
 
-External service adapters are isolated in single files:
+Important adapters:
+
 - WeChat: `apps/api/src/auth/wechat-openid.client.ts`
-- AI: `apps/api/src/ai/ai.service.ts` (echo provider default, HTTP provider via env)
-- Storage: `apps/api/src/storage/storage.service.ts` (S3-compatible, defaults to MinIO)
+- AI: `apps/api/src/ai/ai.service.ts`
+- Storage: `apps/api/src/storage/storage.service.ts`
 
 ### Weapp (`apps/weapp`)
 
-Taro 4 + React 18 + NutUI React Taro + Zustand for state. Runs as both WeChat mini program and H5.
+The frontend uses Taro 4, React 18, NutUI React Taro, TypeScript, and Zustand.
 
-- Pages: home, tank-detail, add-record, ai-assistant, reminders, profile
-- `src/services/api.ts` — centralized API client using Taro.request, base URL from `TARO_APP_API_BASE_URL`
-- `src/store/aquarium.ts` — Zustand store with demo data fallback when API unreachable
+- Pages live under `apps/weapp/src/pages`.
+- Centralized API calls live in `apps/weapp/src/services/api.ts`.
+- Shared aquarium state and demo fallback live in `apps/weapp/src/store/aquarium.ts`.
+- Taro config lives in `apps/weapp/config`.
 
-### Database (Prisma + PostgreSQL)
+Use `index.tsx`, `index.config.ts`, and optional `index.scss` inside each page directory.
 
-Models: User, Aquarium, WaterQualityRecord, MaintenanceRecord, Reminder, KnowledgeArticle, FileObject. Key relationships: Aquarium has cascading water/maintenance/reminders; User owns aquariums and reminders.
+### Data and Infra
 
-### Deployment
+Core Prisma models: `User`, `Aquarium`, `WaterQualityRecord`, `MaintenanceRecord`, `Reminder`, `KnowledgeArticle`, and `FileObject`.
 
-GitHub Actions SSH deploy on push to `main`/`master`. Server runs Docker Compose with multi-stage API Dockerfile. Secrets: `TENCENT_LIGHTHOUSE_HOST`, `TENCENT_LIGHTHOUSE_USER`, `TENCENT_LIGHTHOUSE_SSH_KEY`, `DEPLOY_PATH`.
+`docker-compose.yml` starts PostgreSQL 18, MinIO, the API container, and Caddy. Caddy reads `infra/Caddyfile` and proxies `/api/*` to the API service.
 
 ## Environment
 
-Copy `.env.example` to `.env`. Key variables:
+Copy `.env.example` to `.env`.
 
-- `DATABASE_URL` — PostgreSQL connection (default port 5432 to avoid conflicts)
-- `MINIO_*` — MinIO/S3 config
-- `WECHAT_APP_ID` / `WECHAT_APP_SECRET` — WeChat credentials (leave empty for mock mode)
-- `AI_PROVIDER` — `echo` (default) or `http` with `AI_HTTP_ENDPOINT` / `AI_HTTP_API_KEY`
-- `TARO_APP_API_BASE_URL` — API base URL for frontend (default `http://localhost:3000`)
+Key variables:
+
+- `API_PORT` — API port, default `3000`.
+- `WEB_APP_ORIGIN` — allowed CORS origins, default `http://localhost:10086`.
+- `DATABASE_URL` / `POSTGRES_*` — PostgreSQL connection settings.
+- `MINIO_*` — MinIO/S3-compatible storage settings.
+- `WECHAT_APP_ID` / `WECHAT_APP_SECRET` — leave empty for mock login.
+- `AI_PROVIDER` — `echo` or `http`; HTTP mode also needs `AI_HTTP_ENDPOINT` and optionally `AI_HTTP_API_KEY`.
+- `TARO_APP_API_BASE_URL` — frontend API origin, default `http://localhost:3000`.
+
+## Working Rules
+
+- Prefer TypeScript and existing repo patterns.
+- API files follow NestJS names such as `*.module.ts`, `*.controller.ts`, and `*.service.ts`.
+- Frontend API access should stay centralized in `apps/weapp/src/services/api.ts`.
+- For schema changes, update Prisma schema/migrations and run Prisma generation/migration as appropriate.
+- For visible UI changes, verify `dev:weapp`; when practical, also check `dev:h5` for quick browser feedback.
+- Do not commit secrets. Keep `.env.example` as the documented contract.
+- When inspecting third-party Java jar sources, do not use `javap` decompilation first. Prefer Maven source jars already present under `~/.m2/repository`, for example `.../agentscope-1.0.11-sources.jar!/io/agentscope/core/agent/AgentBase.java`.

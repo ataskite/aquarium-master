@@ -14,11 +14,16 @@
     "lint": "pnpm -r lint",
     "prisma:generate": "pnpm --filter @aquarium/api prisma:generate",
     "prisma:migrate": "pnpm --filter @aquarium/api prisma:migrate",
-    "docker:up": "docker compose up -d postgres minio"
+    "docker:up": "docker compose up -d postgres minio",
+    "test": "vitest",
+    "test:run": "pnpm test:api && pnpm test:weapp",
+    "test:api": "cd apps/api && vitest run",
+    "test:weapp": "cd apps/weapp && vitest run"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
     "npm-run-all2": "^8.0.4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.6"
   }
 }

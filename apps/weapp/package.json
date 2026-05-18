@@ -8,7 +8,9 @@
     "build": "taro build --type weapp",
     "build:h5": "taro build --type h5",
     "lint": "tsc --noEmit",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@nutui/nutui-react-taro": "^3.0.20-cpp",

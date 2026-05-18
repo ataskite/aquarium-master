@@ -10,7 +10,12 @@ export class AquariumsController {
     return this.prisma.aquarium.findMany({
       where: userId ? { userId } : undefined,
       orderBy: { createdAt: 'desc' },
-      include: { waterRecords: { orderBy: { recordedAt: 'desc' }, take: 1 }, reminders: true },
+      include: {
+        fishStocks: { include: { species: true }, orderBy: { createdAt: 'asc' } },
+        waterProfile: true,
+        waterRecords: { orderBy: { recordedAt: 'desc' }, take: 1 },
+        reminders: true,
+      },
     });
   }
 
@@ -24,6 +29,10 @@ export class AquariumsController {
     return this.prisma.aquarium.findUnique({
       where: { id },
       include: {
+        fishStocks: { include: { species: true }, orderBy: { createdAt: 'asc' } },
+        devices: { orderBy: { createdAt: 'asc' } },
+        waterProfile: true,
+        feedingTemplates: { include: { species: true }, orderBy: { createdAt: 'asc' } },
         waterRecords: { orderBy: { recordedAt: 'desc' } },
         maintenanceRecords: { orderBy: { happenedAt: 'desc' } },
         reminders: { orderBy: { dueAt: 'asc' } },

@@ -19,18 +19,18 @@ enum ReminderStatus {
 }
 
 model User {
-  id         String     @id @default(cuid())
-  openId     String?    @unique
-  nickname   String?
-  avatarUrl  String?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  aquariums  Aquarium[]
-  reminders  Reminder[]
+  id        String     @id @default(cuid())
+  openId    String?    @unique
+  nickname  String?
+  avatarUrl String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  aquariums Aquarium[]
+  reminders Reminder[]
 }
 
 model Aquarium {
-  id                 String              @id @default(cuid())
+  id                 String                 @id @default(cuid())
   userId             String?
   name               String
   coverUrl           String?
@@ -39,18 +39,110 @@ model Aquarium {
   widthCm            Int?
   heightCm           Int?
   species            String?
-  status             AquariumStatus     @default(RUNNING)
-  healthScore        Int                 @default(92)
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  user               User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  status             AquariumStatus         @default(RUNNING)
+  healthScore        Int                    @default(92)
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  user               User?                  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  fishStocks         AquariumStock[]
+  devices            AquariumDevice[]
+  waterProfile       WaterParameterProfile?
+  feedingTemplates   FeedingTemplate[]
   waterRecords       WaterQualityRecord[]
   maintenanceRecords MaintenanceRecord[]
   reminders          Reminder[]
 }
 
+model FishSpecies {
+  id               String            @id @default(cuid())
+  commonName       String
+  scientificName   String
+  category         String
+  origin           String?
+  careLevel        String?
+  temperament      String?
+  diet             String?
+  waterLayer       String?
+  minGroupSize     Int?
+  minTankLiters    Int?
+  adultSizeCm      Float?
+  temperatureMin   Float?
+  temperatureMax   Float?
+  phMin            Float?
+  phMax            Float?
+  hardness         String?
+  notes            String?
+  sourceUrls       String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  aquariumStocks   AquariumStock[]
+  feedingTemplates FeedingTemplate[]
+}
+
+model AquariumStock {
+  id          String      @id @default(cuid())
+  aquariumId  String
+  speciesId   String
+  quantity    Int
+  displayName String?
+  color       String?
+  note        String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  aquarium    Aquarium    @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+  species     FishSpecies @relation(fields: [speciesId], references: [id], onDelete: Restrict)
+}
+
+model AquariumDevice {
+  id          String   @id @default(cuid())
+  aquariumId  String
+  type        String
+  name        String
+  status      String   @default("RUNNING")
+  powerWatts  Float?
+  flowRateLph Int?
+  schedule    String?
+  note        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  aquarium    Aquarium @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+}
+
+model WaterParameterProfile {
+  id             String   @id @default(cuid())
+  aquariumId     String   @unique
+  temperatureMin Float?
+  temperatureMax Float?
+  phMin          Float?
+  phMax          Float?
+  ammoniaMax     Float    @default(0)
+  nitriteMax     Float    @default(0)
+  nitrateMax     Float?
+  tdsMin         Float?
+  tdsMax         Float?
+  note           String?
+  sourceUrls     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  aquarium       Aquarium @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+}
+
+model FeedingTemplate {
+  id         String       @id @default(cuid())
+  aquariumId String
+  speciesId  String?
+  food       String
+  amount     String
+  frequency  String
+  note       String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  aquarium   Aquarium     @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+  species    FishSpecies? @relation(fields: [speciesId], references: [id], onDelete: SetNull)
+}
+
 model WaterQualityRecord {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   aquariumId  String
   temperature Float?
   ph          Float?
@@ -59,37 +151,37 @@ model WaterQualityRecord {
   nitrate     Float?
   tds         Float?
   note        String?
-  recordedAt  DateTime  @default(now())
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  aquarium    Aquarium  @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+  recordedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  aquarium    Aquarium @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
 }
 
 model MaintenanceRecord {
-  id          String    @id @default(cuid())
-  aquariumId  String
-  type        String
-  note        String?
-  imageUrl    String?
-  happenedAt  DateTime  @default(now())
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  aquarium    Aquarium  @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  aquariumId String
+  type       String
+  note       String?
+  imageUrl   String?
+  happenedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  aquarium   Aquarium @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
 }
 
 model Reminder {
-  id          String          @id @default(cuid())
-  userId      String?
-  aquariumId  String?
-  title       String
-  note        String?
-  dueAt       DateTime
-  repeatRule  String?
-  status      ReminderStatus  @default(PENDING)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  user        User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
-  aquarium    Aquarium?       @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
+  id         String         @id @default(cuid())
+  userId     String?
+  aquariumId String?
+  title      String
+  note       String?
+  dueAt      DateTime
+  repeatRule String?
+  status     ReminderStatus @default(PENDING)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  user       User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  aquarium   Aquarium?      @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
 }
 
 model KnowledgeArticle {

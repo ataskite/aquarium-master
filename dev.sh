@@ -18,6 +18,8 @@ cleanup() {
   if [ -n "${API_PID:-}" ]; then kill "$API_PID" 2>/dev/null || true; fi
   if [ -n "${H5_PID:-}" ]; then  kill "$H5_PID"  2>/dev/null || true; fi
   wait 2>/dev/null
+  info "Stopping Docker containers..."
+  docker compose down 2>/dev/null || true
   ok "All processes stopped."
 }
 trap cleanup EXIT INT TERM
@@ -95,27 +97,34 @@ ok "H5 running at http://localhost:10086"
 
 # ── Open browser (mobile viewport) ─────────────────────
 H5_URL="http://localhost:10086"
-info "Opening browser in mobile mode..."
+info "Opening Chrome in mobile mode..."
 if [[ "$(uname)" == "Darwin" ]]; then
-  # AppleScript: open Chrome in mobile device mode (iPhone 14 viewport)
+  # Wait a bit for Chrome to be ready
+  sleep 1
+  # AppleScript: open Chrome in mobile device mode
   osascript -e '
     tell application "Google Chrome"
       activate
-      if (count of windows) = 0 then make new window
-      set URL of active tab of first window to "'"$H5_URL"'"
+      delay 0.5
+      if (count of windows) = 0 then
+        make new window
+      end if
+      set URL of active tab of front window to "'"$H5_URL"'"
+      delay 1
       tell application "System Events"
-        tell process "Google Chrome"
+        tell process "Chrome"
           -- Open DevTools: Cmd+Option+I
           keystroke "i" using {command down, option down}
-          delay 1.5
+          delay 2
           -- Toggle device toolbar: Cmd+Shift+M
           keystroke "m" using {command down, shift down}
         end tell
       end tell
     end tell
-  ' 2>/dev/null || open "$H5_URL"
+  ' 2>/dev/null || true
 else
-  open "$H5_URL" 2>/dev/null || xdg-open "$H5_URL" 2>/dev/null || true
+  # Linux: try Chrome/Chromium
+  google-chrome "$H5_URL" 2>/dev/null || google-chrome-stable "$H5_URL" 2>/dev/null || chromium-browser "$H5_URL" 2>/dev/null || true
 fi
 
 printf "\n${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"

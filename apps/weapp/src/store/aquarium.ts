@@ -11,12 +11,15 @@ interface AquariumState {
 
 const demoAquariums: Aquarium[] = [
   {
-    id: 'demo-living-room',
-    name: '我的客厅鱼缸',
+    id: 'demo-aquarium-community',
+    name: '南美小型灯鱼缸',
     volumeLiters: 84,
-    species: '孔雀鱼、红绿灯、清道夫',
+    lengthCm: 60,
+    widthCm: 40,
+    heightCm: 35,
+    species: '红绿灯鱼 Paracheirodon innesi 12只、熊猫鼠 Corydoras panda 6只、小精灵 Otocinclus spp. 3只',
     status: 'RUNNING',
-    healthScore: 92,
+    healthScore: 94,
   },
 ];
 
@@ -28,9 +31,18 @@ export const useAquariumStore = create<AquariumState>((set) => ({
     set({ loading: true });
     try {
       const aquariums = await api.listAquariums();
-      set({ aquariums: aquariums.length ? aquariums : demoAquariums, selectedId: aquariums[0]?.id ?? demoAquariums[0].id });
+      const nextAquariums = aquariums.length ? aquariums : demoAquariums;
+      const currentSelectedId = useAquariumStore.getState().selectedId;
+      const nextSelectedId = nextAquariums.some((aquarium) => aquarium.id === currentSelectedId)
+        ? currentSelectedId
+        : nextAquariums[0].id;
+      set({ aquariums: nextAquariums, selectedId: nextSelectedId });
     } catch {
-      set({ aquariums: demoAquariums, selectedId: demoAquariums[0].id });
+      const currentSelectedId = useAquariumStore.getState().selectedId;
+      const nextSelectedId = demoAquariums.some((aquarium) => aquarium.id === currentSelectedId)
+        ? currentSelectedId
+        : demoAquariums[0].id;
+      set({ aquariums: demoAquariums, selectedId: nextSelectedId });
     } finally {
       set({ loading: false });
     }

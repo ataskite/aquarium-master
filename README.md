@@ -20,7 +20,7 @@
 | --- | --- |
 | 小程序前端 | Taro 4、React 18、TypeScript、NutUI React Taro、Zustand |
 | API 服务 | NestJS 11、TypeScript、Prisma |
-| 数据库 | PostgreSQL 16 |
+| 数据库 | PostgreSQL 18 |
 | 对象存储 | MinIO、AWS S3 SDK |
 | 网关 | Caddy |
 | 包管理 | pnpm workspace、Corepack |
@@ -226,6 +226,7 @@ API 统一带 `/api` 前缀。
 ## 构建与检查
 
 ```bash
+corepack pnpm lint
 corepack pnpm typecheck
 corepack pnpm build
 ```
@@ -287,3 +288,12 @@ Caddy 默认读取 `infra/Caddyfile`，通过 `APP_DOMAIN` 配置域名；未配
 ### 微信登录为什么返回 mock openid
 
 当 `WECHAT_APP_ID` 或 `WECHAT_APP_SECRET` 为空时，后端会进入占位模式，返回 `mock-openid-${code}`，方便本地开发。
+
+## Agent 协作约定
+
+本仓库同时维护 `AGENTS.md` 与 `CLAUDE.md`，分别作为 Codex/通用 agent 和 Claude Code 的入口说明。更新项目结构、命令、验证方式、环境变量或部署流程时，请同步检查这两个文件，避免不同工具拿到过期上下文。
+
+- 代码变更保持 TypeScript 贯穿，API 侧遵循 NestJS `*.module.ts`、`*.controller.ts`、`*.service.ts` 命名，前端页面保持 Taro `index.tsx`、`index.config.ts`、可选 `index.scss` 结构。
+- API 调用集中在 `apps/weapp/src/services/api.ts`，跨页面状态优先使用 `apps/weapp/src/store/aquarium.ts`。
+- 交付前至少运行 `corepack pnpm typecheck`、`corepack pnpm lint`，可见 UI 改动尽量验证 `dev:weapp`，需要浏览器快速检查时验证 `dev:h5`。
+- 查看第三方 Java jar 源码时，不要优先用 `javap` 反编译；本机 Maven repo 通常已有 sources jar，例如 `~/.m2/repository/io/agentscope/agentscope/1.0.11/agentscope-1.0.11-sources.jar!/io/agentscope/core/agent/AgentBase.java`。
