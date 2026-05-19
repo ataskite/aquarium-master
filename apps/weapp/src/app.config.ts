@@ -6,6 +6,10 @@ export default defineAppConfig({
     'pages/ai-assistant/index',
     'pages/reminders/index',
     'pages/profile/index',
+    'pages/aquarium-create/index',
+    'pages/aquarium-edit/index',
+    'pages/fish-add/index',
+    'pages/device-add/index',
   ],
   window: {
     backgroundTextStyle: 'light',

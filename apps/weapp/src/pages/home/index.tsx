@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro';
 import { View, Text } from '@tarojs/components';
 import { Aquarium } from '../../services/api';
 import { useAquariumStore } from '../../store/aquarium';
+import { useAuthStore } from '../../store/auth';
 import { formatDueAt } from '../../utils/datetime';
 import {
   countFish,
@@ -17,6 +18,7 @@ import './index.scss';
 
 export default function HomePage() {
   const { aquariums, selectedId, loadAquariums, select, loading } = useAquariumStore();
+  const { isLoggedIn } = useAuthStore();
   const selectedTank = aquariums.find((item) => item.id === selectedId) ?? aquariums[0];
   const fishArchive = useMemo(() => listFishArchiveItems(aquariums), [aquariums]);
   const totalPending = useMemo(() => countPendingReminders(aquariums), [aquariums]);
@@ -214,6 +216,12 @@ export default function HomePage() {
           </View>
         ))}
       </View>
+
+      {isLoggedIn && (
+        <View className="fab" onClick={() => Taro.navigateTo({ url: '/pages/aquarium-create/index' })}>
+          <Text className="fab-text">+</Text>
+        </View>
+      )}
     </View>
   );
 }

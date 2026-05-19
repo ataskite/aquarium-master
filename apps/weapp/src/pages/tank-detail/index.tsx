@@ -95,6 +95,7 @@ export default function TankDetailPage() {
       <View className="hero tank-archive-hero">
         <Text className="hero-title">{tank?.name ?? '鱼缸档案'}</Text>
         <Text className="hero-subtitle">{tank?.volumeLiters ?? '-'}L · {status} · 健康 {tank?.healthScore ?? '--'}分</Text>
+        <Text className="hero-edit-link" onClick={() => tank?.id && Taro.navigateTo({ url: `/pages/aquarium-edit/index?id=${tank.id}` })}>编辑</Text>
         <View className="archive-info">
           <Text>{tank?.species ?? '鱼只待补充'}</Text>
           <Text>{dimensions}</Text>

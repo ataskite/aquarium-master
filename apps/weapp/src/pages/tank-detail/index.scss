@@ -6,6 +6,19 @@
   min-height: 248px;
 }
 
+.hero-edit-link {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  margin-top: 12px;
+  padding: 6px 18px;
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 22px;
+  font-weight: 700;
+}
+
 .archive-info {
   position: relative;
   z-index: 1;
