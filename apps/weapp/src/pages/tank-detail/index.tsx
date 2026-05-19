@@ -181,6 +181,14 @@ export default function TankDetailPage() {
           ))}
         </View>
       </View>
+      <Button
+        block
+        size="small"
+        className="add-fish-button"
+        onClick={() => Taro.navigateTo({ url: `/pages/device-add/index?aquariumId=${tank?.id ?? ''}` })}
+      >
+        添加设备
+      </Button>
 
       <Text className="section-title">目标水质</Text>
       <View className="card">
