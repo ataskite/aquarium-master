@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Controller('maintenance-records')
@@ -6,9 +7,9 @@ export class MaintenanceController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get()
-  list(@Query('aquariumId') aquariumId?: string) {
+  list(@CurrentUser('id') userId: string, @Query('aquariumId') aquariumId?: string) {
     return this.prisma.maintenanceRecord.findMany({
-      where: aquariumId ? { aquariumId } : undefined,
+      where: aquariumId ? { aquariumId, aquarium: { userId } } : { aquarium: { userId } },
       orderBy: { happenedAt: 'desc' },
     });
   }

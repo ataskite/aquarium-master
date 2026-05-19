@@ -31,7 +31,7 @@ model User {
 
 model Aquarium {
   id                 String                 @id @default(cuid())
-  userId             String?
+  userId             String
   name               String
   coverUrl           String?
   volumeLiters       Int?
@@ -43,7 +43,7 @@ model Aquarium {
   healthScore        Int                    @default(92)
   createdAt          DateTime               @default(now())
   updatedAt          DateTime               @updatedAt
-  user               User?                  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user               User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   fishStocks         AquariumStock[]
   devices            AquariumDevice[]
   waterProfile       WaterParameterProfile?
@@ -82,7 +82,7 @@ model FishSpecies {
 model AquariumStock {
   id          String      @id @default(cuid())
   aquariumId  String
-  speciesId   String
+  speciesId   String?
   quantity    Int
   displayName String?
   color       String?
@@ -90,7 +90,7 @@ model AquariumStock {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   aquarium    Aquarium    @relation(fields: [aquariumId], references: [id], onDelete: Cascade)
-  species     FishSpecies @relation(fields: [speciesId], references: [id], onDelete: Restrict)
+  species     FishSpecies? @relation(fields: [speciesId], references: [id], onDelete: Restrict)
 }
 
 model AquariumDevice {

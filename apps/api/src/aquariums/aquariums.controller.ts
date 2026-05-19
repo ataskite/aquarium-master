@@ -1,52 +1,33 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { AquariumsService } from './aquariums.service';
 
 @Controller('aquariums')
 export class AquariumsController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly service: AquariumsService) {}
 
   @Get()
-  list(@Query('userId') userId?: string) {
-    return this.prisma.aquarium.findMany({
-      where: userId ? { userId } : undefined,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        fishStocks: { include: { species: true }, orderBy: { createdAt: 'asc' } },
-        waterProfile: true,
-        waterRecords: { orderBy: { recordedAt: 'desc' }, take: 1 },
-        reminders: true,
-      },
-    });
+  list(@CurrentUser('id') userId: string) {
+    return this.service.list(userId);
   }
 
   @Post()
-  create(@Body() body: Record<string, unknown>) {
-    return this.prisma.aquarium.create({ data: body as never });
+  create(@CurrentUser('id') userId: string, @Body() body: Record<string, unknown>) {
+    return this.service.create(userId, body);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.prisma.aquarium.findUnique({
-      where: { id },
-      include: {
-        fishStocks: { include: { species: true }, orderBy: { createdAt: 'asc' } },
-        devices: { orderBy: { createdAt: 'asc' } },
-        waterProfile: true,
-        feedingTemplates: { include: { species: true }, orderBy: { createdAt: 'asc' } },
-        waterRecords: { orderBy: { recordedAt: 'desc' } },
-        maintenanceRecords: { orderBy: { happenedAt: 'desc' } },
-        reminders: { orderBy: { dueAt: 'asc' } },
-      },
-    });
+  findOne(@CurrentUser('id') userId: string, @Param('id') id: string) {
+    return this.service.findOne(userId, id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() body: Record<string, unknown>) {
-    return this.prisma.aquarium.update({ where: { id }, data: body as never });
+  update(@CurrentUser('id') userId: string, @Param('id') id: string, @Body() body: Record<string, unknown>) {
+    return this.service.update(userId, id, body);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.prisma.aquarium.delete({ where: { id } });
+  remove(@CurrentUser('id') userId: string, @Param('id') id: string) {
+    return this.service.remove(userId, id);
   }
 }

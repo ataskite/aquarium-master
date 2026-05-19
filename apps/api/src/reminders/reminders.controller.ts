@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Controller('reminders')
@@ -6,16 +7,16 @@ export class RemindersController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get()
-  list(@Query('userId') userId?: string, @Query('aquariumId') aquariumId?: string) {
+  list(@CurrentUser('id') userId: string, @Query('aquariumId') aquariumId?: string) {
     return this.prisma.reminder.findMany({
-      where: { ...(userId ? { userId } : {}), ...(aquariumId ? { aquariumId } : {}) },
+      where: { userId, ...(aquariumId ? { aquariumId } : {}) },
       orderBy: { dueAt: 'asc' },
     });
   }
 
   @Post()
-  create(@Body() body: Record<string, unknown>) {
-    return this.prisma.reminder.create({ data: body as never });
+  create(@CurrentUser('id') userId: string, @Body() body: Record<string, unknown>) {
+    return this.prisma.reminder.create({ data: { ...body, userId } as never });
   }
 
   @Patch(':id')
