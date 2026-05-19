@@ -14,6 +14,7 @@ import { UsersModule } from './users/users.module';
 import { FishSpeciesModule } from './fish-species/fish-species.module';
 import { FishStocksModule } from './fish-stocks/fish-stocks.module';
 import { WaterQualityModule } from './water-quality/water-quality.module';
+import { DevicesModule } from './devices/devices.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { WaterQualityModule } from './water-quality/water-quality.module';
     KnowledgeModule,
     FishStocksModule,
     FishSpeciesModule,
+    DevicesModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
