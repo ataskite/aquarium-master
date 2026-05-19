@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { WechatOpenIdClient } from './wechat-openid.client';
 
@@ -7,6 +8,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly wechat: WechatOpenIdClient,
+    private readonly jwt: JwtService,
   ) {}
 
   async loginWithWechatCode(code: string, profile?: { nickname?: string; avatarUrl?: string }) {
@@ -17,8 +19,13 @@ export class AuthService {
       update: { nickname: profile?.nickname, avatarUrl: profile?.avatarUrl },
     });
 
+    const accessToken = this.jwt.sign(
+      { userId: user.id, openId: session.openid },
+      { expiresIn: '7d' },
+    );
+
     return {
-      token: `demo-token-${user.id}`,
+      accessToken,
       user,
       session: { openid: session.openid, unionid: session.unionid },
     };

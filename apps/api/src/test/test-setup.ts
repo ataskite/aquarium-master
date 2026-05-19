@@ -12,3 +12,4 @@ process.env.MINIO_ACCESS_KEY = 'minioadmin';
 process.env.MINIO_SECRET_KEY = 'minioadmin';
 process.env.MINIO_BUCKET = 'aquarium-test';
 process.env.API_PORT = '0';
+process.env.JWT_SECRET = 'test-jwt-secret';

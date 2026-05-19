@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { AiModule } from './ai/ai.module';
 import { AquariumsModule } from './aquariums/aquariums.module';
 import { AuthModule } from './auth/auth.module';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { KnowledgeModule } from './knowledge/knowledge.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -24,6 +26,9 @@ import { WaterQualityModule } from './water-quality/water-quality.module';
     StorageModule,
     RemindersModule,
     KnowledgeModule,
+  ],
+  providers: [
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
   ],
 })
 export class AppModule {}

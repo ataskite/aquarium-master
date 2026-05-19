@@ -1,10 +1,12 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { Public } from '../common/decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
+  @Public()
   @Post('wechat-login')
   login(@Body() body: { code: string; nickname?: string; avatarUrl?: string }) {
     return this.auth.loginWithWechatCode(body.code, {
