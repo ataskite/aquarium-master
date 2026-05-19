@@ -4,6 +4,7 @@ import { View, Text } from '@tarojs/components';
 import { Button } from '@nutui/nutui-react-taro';
 import { api } from '../../services/api';
 import { useAquariumStore } from '../../store/aquarium';
+import { useAuthStore } from '../../store/auth';
 import './index.scss';
 
 interface ProfileStats {
@@ -15,19 +16,21 @@ interface ProfileStats {
 
 export default function ProfilePage() {
   const { selectedId, aquariums, loadAquariums } = useAquariumStore();
+  const { user, isLoggedIn, login, logout } = useAuthStore();
   const aquariumId = selectedId ?? aquariums[0]?.id;
-  const [openid, setOpenid] = useState('未登录');
-  const [stats, setStats] = useState<ProfileStats>({ aquariums: aquariums.length, reminders: 0, records: 0, knowledge: 0 });
+  const [stats, setStats] = useState<ProfileStats>({ aquariums: 0, reminders: 0, records: 0, knowledge: 0 });
   const [loading, setLoading] = useState(false);
 
   const loadStats = async () => {
+    if (!isLoggedIn) return;
     setLoading(true);
     try {
       await loadAquariums();
+      const currentAquariumId = useAquariumStore.getState().selectedId ?? useAquariumStore.getState().aquariums[0]?.id;
       const [reminders, waterRecords, maintenanceRecords, knowledge] = await Promise.all([
-        api.listReminders(aquariumId),
-        aquariumId ? api.listWaterRecords(aquariumId) : Promise.resolve([]),
-        aquariumId ? api.listMaintenanceRecords(aquariumId) : Promise.resolve([]),
+        api.listReminders(currentAquariumId),
+        currentAquariumId ? api.listWaterRecords(currentAquariumId) : Promise.resolve([]),
+        currentAquariumId ? api.listMaintenanceRecords(currentAquariumId) : Promise.resolve([]),
         api.listKnowledge(),
       ]);
       setStats({
@@ -45,17 +48,22 @@ export default function ProfilePage() {
 
   useEffect(() => {
     void loadStats();
-  }, [aquariumId]);
+  }, [isLoggedIn, aquariumId]);
 
-  const login = async () => {
+  const handleLogin = async () => {
     try {
       const { code } = await Taro.login();
-      const response = await api.login(code) as { session?: { openid?: string } };
-      setOpenid(response.session?.openid ?? 'mock-openid-demo');
+      await login(code);
       await Taro.showToast({ title: '已登录', icon: 'success' });
     } catch {
       await Taro.showToast({ title: '登录失败', icon: 'none' });
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    useAquariumStore.setState({ aquariums: [], selectedId: undefined });
+    setStats({ aquariums: 0, reminders: 0, records: 0, knowledge: 0 });
   };
 
   return (
@@ -69,25 +77,30 @@ export default function ProfilePage() {
       <View className="card">
         <View className="row">
           <View>
-            <Text className="metric-value">微信用户</Text>
-            <Text className="muted">{openid}</Text>
+            <Text className="metric-value">{isLoggedIn ? (user?.nickname ?? '微信用户') : '未登录'}</Text>
+            {isLoggedIn && user?.openId && <Text className="muted">{user.openId}</Text>}
           </View>
-          <Text className={openid === '未登录' ? 'pill' : 'pill green'}>{openid === '未登录' ? '未登录' : '已登录'}</Text>
+          <Text className={isLoggedIn ? 'pill green' : 'pill'}>{isLoggedIn ? '已登录' : '未登录'}</Text>
         </View>
       </View>
-      <Button block type="primary" className="water-button" onClick={login}>微信登录</Button>
+      {!isLoggedIn && <Button block type="primary" className="water-button" onClick={handleLogin}>微信登录</Button>}
+      {isLoggedIn && <Button block className="profile-secondary-button" onClick={handleLogout}>退出登录</Button>}
 
-      <Text className="section-title">服务数据</Text>
-      {loading && <View className="card"><Text className="muted">加载中...</Text></View>}
-      {!loading && (
-        <View className="metric-grid">
-          <View className="metric"><Text className="muted">鱼缸</Text><Text className="metric-value">{stats.aquariums}</Text></View>
-          <View className="metric"><Text className="muted">提醒</Text><Text className="metric-value">{stats.reminders}</Text></View>
-          <View className="metric"><Text className="muted">养护记录</Text><Text className="metric-value">{stats.records}</Text></View>
-          <View className="metric"><Text className="muted">知识库</Text><Text className="metric-value">{stats.knowledge}</Text></View>
-        </View>
+      {isLoggedIn && (
+        <>
+          <Text className="section-title">服务数据</Text>
+          {loading && <View className="card"><Text className="muted">加载中...</Text></View>}
+          {!loading && (
+            <View className="metric-grid">
+              <View className="metric"><Text className="muted">鱼缸</Text><Text className="metric-value">{stats.aquariums}</Text></View>
+              <View className="metric"><Text className="muted">提醒</Text><Text className="metric-value">{stats.reminders}</Text></View>
+              <View className="metric"><Text className="muted">养护记录</Text><Text className="metric-value">{stats.records}</Text></View>
+              <View className="metric"><Text className="muted">知识库</Text><Text className="metric-value">{stats.knowledge}</Text></View>
+            </View>
+          )}
+          <Button block className="profile-secondary-button" onClick={() => void loadStats()}>刷新数据</Button>
+        </>
       )}
-      <Button block className="profile-secondary-button" onClick={() => void loadStats()}>刷新数据</Button>
     </View>
   );
 }

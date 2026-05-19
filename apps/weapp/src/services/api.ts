@@ -47,7 +47,7 @@ export interface FishSpecies {
 export interface AquariumStock {
   id: string;
   aquariumId: string;
-  speciesId: string;
+  speciesId?: string;
   quantity: number;
   displayName?: string;
   color?: string;
@@ -141,11 +141,22 @@ export interface ChatMessage {
 }
 
 async function request<T>(url: string, method: keyof Taro.request.Method = 'GET', data?: unknown): Promise<T> {
+  const token = Taro.getStorageSync('auth_token');
+  const header: Record<string, string> = {};
+  if (token) {
+    header['Authorization'] = `Bearer ${token}`;
+  }
   const response = await Taro.request<T>({
     url: `${baseUrl}/api${url}`,
     method,
     data,
+    header,
   });
+  if (response.statusCode === 401) {
+    Taro.removeStorageSync('auth_token');
+    Taro.removeStorageSync('auth_user');
+    throw new Error('Unauthorized');
+  }
   if (response.statusCode < 200 || response.statusCode >= 300) {
     throw new Error(`Request failed: ${response.statusCode}`);
   }
@@ -168,5 +179,25 @@ export const api = {
   chat: (messages: ChatMessage[] | string) => request<{ answer: string; provider: string }>('/ai/chat', 'POST', {
     messages: typeof messages === 'string' ? [{ role: 'user', content: messages }] : messages,
   }),
-  login: (code: string) => request('/auth/wechat-login', 'POST', { code }),
+  login: (code: string, nickname?: string) => request('/auth/wechat-login', 'POST', { code, nickname }),
+
+  // Aquarium CRUD
+  updateAquarium: (id: string, data: Partial<Aquarium>) => request<Aquarium>(`/aquariums/${id}`, 'PATCH', data),
+  deleteAquarium: (id: string) => request<Aquarium>(`/aquariums/${id}`, 'DELETE'),
+
+  // Fish stocks
+  listFishStocks: (aquariumId: string) => request<AquariumStock[]>(`/fish-stocks?aquariumId=${aquariumId}`),
+  createFishStock: (data: { aquariumId: string; speciesId?: string; displayName?: string; quantity: number; color?: string; note?: string }) => request<AquariumStock>('/fish-stocks', 'POST', data),
+  updateFishStock: (id: string, data: Partial<AquariumStock>) => request<AquariumStock>(`/fish-stocks/${id}`, 'PATCH', data),
+  deleteFishStock: (id: string) => request<AquariumStock>(`/fish-stocks/${id}`, 'DELETE'),
+
+  // Fish species
+  searchFishSpecies: (q: string) => request<FishSpecies[]>(`/fish-species?q=${encodeURIComponent(q)}`),
+  listFishSpecies: () => request<FishSpecies[]>('/fish-species'),
+
+  // Devices
+  listDevices: (aquariumId: string) => request<AquariumDevice[]>(`/devices?aquariumId=${aquariumId}`),
+  createDevice: (data: { aquariumId: string; type: string; name: string; status?: string; powerWatts?: number; flowRateLph?: number; schedule?: string; note?: string }) => request<AquariumDevice>('/devices', 'POST', data),
+  updateDevice: (id: string, data: Partial<AquariumDevice>) => request<AquariumDevice>(`/devices/${id}`, 'PATCH', data),
+  deleteDevice: (id: string) => request<AquariumDevice>(`/devices/${id}`, 'DELETE'),
 };
