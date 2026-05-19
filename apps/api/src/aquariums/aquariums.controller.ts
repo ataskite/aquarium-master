@@ -1,6 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AquariumsService } from './aquariums.service';
+import { CreateAquariumDto } from './dto/create-aquarium.dto';
+import { UpdateAquariumDto } from './dto/update-aquarium.dto';
 
 @Controller('aquariums')
 export class AquariumsController {
@@ -12,8 +14,8 @@ export class AquariumsController {
   }
 
   @Post()
-  create(@CurrentUser('id') userId: string, @Body() body: Record<string, unknown>) {
-    return this.service.create(userId, body);
+  create(@CurrentUser('id') userId: string, @Body() dto: CreateAquariumDto) {
+    return this.service.create(userId, dto as unknown as Record<string, unknown>);
   }
 
   @Get(':id')
@@ -22,8 +24,8 @@ export class AquariumsController {
   }
 
   @Patch(':id')
-  update(@CurrentUser('id') userId: string, @Param('id') id: string, @Body() body: Record<string, unknown>) {
-    return this.service.update(userId, id, body);
+  update(@CurrentUser('id') userId: string, @Param('id') id: string, @Body() dto: UpdateAquariumDto) {
+    return this.service.update(userId, id, dto as unknown as Record<string, unknown>);
   }
 
   @Delete(':id')
