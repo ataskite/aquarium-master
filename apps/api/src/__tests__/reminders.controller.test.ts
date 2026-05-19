@@ -2,10 +2,12 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createTestApp, getHttpServer, closeTestApp } from '../test/test-app';
 import { cleanDatabase } from '../test/database';
+import { createAuthenticatedUser } from '../test/test-helpers';
 import { createAquarium, createReminder } from '../test/fixtures';
 
 describe('RemindersController', () => {
   let userId: string;
+  let token: string;
   let aquariumId: string;
 
   beforeAll(async () => {
@@ -19,20 +21,20 @@ describe('RemindersController', () => {
   beforeEach(async () => {
     await cleanDatabase();
 
-    const authRes = await request(getHttpServer())
-      .post('/api/auth/wechat-login')
-      .send({ code: 'test-setup' });
-    userId = authRes.body.user.id;
+    const app = await createTestApp();
+    ({ userId, token } = await createAuthenticatedUser(app, getHttpServer()));
 
     const tankRes = await request(getHttpServer())
       .post('/api/aquariums')
+      .set('Authorization', `Bearer ${token}`)
       .send(createAquarium(userId));
     aquariumId = tankRes.body.id;
   });
 
   it('GET /api/reminders returns empty array initially', async () => {
     const res = await request(getHttpServer())
-      .get('/api/reminders');
+      .get('/api/reminders')
+      .set('Authorization', `Bearer ${token}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
@@ -42,6 +44,7 @@ describe('RemindersController', () => {
     const payload = createReminder(userId, aquariumId);
     const res = await request(getHttpServer())
       .post('/api/reminders')
+      .set('Authorization', `Bearer ${token}`)
       .send(payload);
 
     expect(res.status).toBe(201);
@@ -59,18 +62,22 @@ describe('RemindersController', () => {
 
     await request(getHttpServer())
       .post('/api/reminders')
+      .set('Authorization', `Bearer ${token}`)
       .send({ ...base, dueAt: new Date('2026-02-01T10:00:00Z').toISOString() });
 
     await request(getHttpServer())
       .post('/api/reminders')
+      .set('Authorization', `Bearer ${token}`)
       .send({ ...base, dueAt: new Date('2026-01-01T10:00:00Z').toISOString() });
 
     await request(getHttpServer())
       .post('/api/reminders')
+      .set('Authorization', `Bearer ${token}`)
       .send({ ...base, dueAt: new Date('2026-03-01T10:00:00Z').toISOString() });
 
     const res = await request(getHttpServer())
-      .get('/api/reminders');
+      .get('/api/reminders')
+      .set('Authorization', `Bearer ${token}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(3);
@@ -80,23 +87,23 @@ describe('RemindersController', () => {
     }
   });
 
-  it('GET /api/reminders?userId=xxx filters by user', async () => {
-    const secondAuthRes = await request(getHttpServer())
-      .post('/api/auth/wechat-login')
-      .send({ code: 'test-setup-other' });
-    const secondUserId = secondAuthRes.body.user.id;
+  it('GET /api/reminders only returns the authenticated user\'s reminders', async () => {
+    const app = await createTestApp();
+    const { token: token2 } = await createAuthenticatedUser(app, getHttpServer(), 'other-user');
 
     await request(getHttpServer())
       .post('/api/reminders')
+      .set('Authorization', `Bearer ${token}`)
       .send(createReminder(userId, aquariumId));
 
     await request(getHttpServer())
       .post('/api/reminders')
-      .send(createReminder(secondUserId, aquariumId));
+      .set('Authorization', `Bearer ${token2}`)
+      .send(createReminder('other-user-id', aquariumId));
 
     const res = await request(getHttpServer())
       .get('/api/reminders')
-      .query({ userId });
+      .set('Authorization', `Bearer ${token}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
@@ -106,19 +113,23 @@ describe('RemindersController', () => {
   it('GET /api/reminders?aquariumId=xxx filters by aquarium', async () => {
     const secondTankRes = await request(getHttpServer())
       .post('/api/aquariums')
+      .set('Authorization', `Bearer ${token}`)
       .send(createAquarium(userId, { name: 'Second Tank' }));
     const secondAquariumId = secondTankRes.body.id;
 
     await request(getHttpServer())
       .post('/api/reminders')
+      .set('Authorization', `Bearer ${token}`)
       .send(createReminder(userId, aquariumId));
 
     await request(getHttpServer())
       .post('/api/reminders')
+      .set('Authorization', `Bearer ${token}`)
       .send(createReminder(userId, secondAquariumId));
 
     const res = await request(getHttpServer())
       .get('/api/reminders')
+      .set('Authorization', `Bearer ${token}`)
       .query({ aquariumId });
 
     expect(res.status).toBe(200);
@@ -129,11 +140,13 @@ describe('RemindersController', () => {
   it('PATCH /api/reminders/:id updates status to DONE', async () => {
     const createRes = await request(getHttpServer())
       .post('/api/reminders')
+      .set('Authorization', `Bearer ${token}`)
       .send(createReminder(userId, aquariumId));
     const reminderId = createRes.body.id;
 
     const patchRes = await request(getHttpServer())
       .patch(`/api/reminders/${reminderId}`)
+      .set('Authorization', `Bearer ${token}`)
       .send({ status: 'DONE' });
 
     expect(patchRes.status).toBe(200);
@@ -143,16 +156,19 @@ describe('RemindersController', () => {
   it('DELETE /api/reminders/:id removes the reminder', async () => {
     const createRes = await request(getHttpServer())
       .post('/api/reminders')
+      .set('Authorization', `Bearer ${token}`)
       .send(createReminder(userId, aquariumId));
     const reminderId = createRes.body.id;
 
     const deleteRes = await request(getHttpServer())
-      .delete(`/api/reminders/${reminderId}`);
+      .delete(`/api/reminders/${reminderId}`)
+      .set('Authorization', `Bearer ${token}`);
 
     expect(deleteRes.status).toBe(200);
 
     const listRes = await request(getHttpServer())
-      .get('/api/reminders');
+      .get('/api/reminders')
+      .set('Authorization', `Bearer ${token}`);
     expect(listRes.body).toHaveLength(0);
   });
 });

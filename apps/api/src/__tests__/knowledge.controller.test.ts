@@ -3,10 +3,13 @@ import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import { createTestApp, getHttpServer, closeTestApp } from '../test/test-app';
 import { cleanDatabase } from '../test/database';
+import { createAuthenticatedUser } from '../test/test-helpers';
 
 const prisma = new PrismaClient();
 
 describe('KnowledgeController (e2e)', () => {
+  let token: string;
+
   beforeAll(async () => {
     await createTestApp();
   });
@@ -18,11 +21,15 @@ describe('KnowledgeController (e2e)', () => {
 
   beforeEach(async () => {
     await cleanDatabase();
+    const app = await createTestApp();
+    ({ token } = await createAuthenticatedUser(app, getHttpServer()));
   });
 
   describe('GET /api/knowledge', () => {
     it('returns seed articles when DB is empty', async () => {
-      const res = await request(getHttpServer()).get('/api/knowledge');
+      const res = await request(getHttpServer())
+        .get('/api/knowledge')
+        .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
@@ -40,7 +47,9 @@ describe('KnowledgeController (e2e)', () => {
         },
       });
 
-      const res = await request(getHttpServer()).get('/api/knowledge');
+      const res = await request(getHttpServer())
+        .get('/api/knowledge')
+        .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
@@ -75,7 +84,9 @@ describe('KnowledgeController (e2e)', () => {
         },
       });
 
-      const res = await request(getHttpServer()).get('/api/knowledge?category=CategoryA');
+      const res = await request(getHttpServer())
+        .get('/api/knowledge?category=CategoryA')
+        .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(
@@ -93,7 +104,9 @@ describe('KnowledgeController (e2e)', () => {
 
   describe('GET /api/knowledge/:id', () => {
     it('returns a specific seed article by id', async () => {
-      const res = await request(getHttpServer()).get('/api/knowledge/cycle-basics');
+      const res = await request(getHttpServer())
+        .get('/api/knowledge/cycle-basics')
+        .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(
@@ -115,7 +128,9 @@ describe('KnowledgeController (e2e)', () => {
         },
       });
 
-      const res = await request(getHttpServer()).get('/api/knowledge/test-article-detail');
+      const res = await request(getHttpServer())
+        .get('/api/knowledge/test-article-detail')
+        .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(
@@ -127,11 +142,11 @@ describe('KnowledgeController (e2e)', () => {
     });
 
     it('returns null for non-existent id', async () => {
-      const res = await request(getHttpServer()).get('/api/knowledge/non-existent-id');
+      const res = await request(getHttpServer())
+        .get('/api/knowledge/non-existent-id')
+        .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
-      // NestJS serializes null controller return values as an empty body
-      // which supertest parses as {}
       expect(res.body).toEqual({});
     });
   });

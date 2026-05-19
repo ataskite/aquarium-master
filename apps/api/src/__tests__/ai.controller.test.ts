@@ -2,8 +2,11 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createTestApp, getHttpServer, closeTestApp } from '../test/test-app';
 import { cleanDatabase } from '../test/database';
+import { createAuthenticatedUser } from '../test/test-helpers';
 
 describe('AiController (e2e)', () => {
+  let token: string;
+
   beforeAll(async () => {
     await createTestApp();
   });
@@ -14,12 +17,15 @@ describe('AiController (e2e)', () => {
 
   beforeEach(async () => {
     await cleanDatabase();
+    const app = await createTestApp();
+    ({ token } = await createAuthenticatedUser(app, getHttpServer()));
   });
 
   describe('POST /api/ai/chat', () => {
     it('returns 201 with answer and provider=echo', async () => {
       const res = await request(getHttpServer())
         .post('/api/ai/chat')
+        .set('Authorization', `Bearer ${token}`)
         .send({
           messages: [{ role: 'user', content: '我的鱼不吃东西怎么办？' }],
         });
@@ -38,6 +44,7 @@ describe('AiController (e2e)', () => {
       const question = '水温偏高如何处理？';
       const res = await request(getHttpServer())
         .post('/api/ai/chat')
+        .set('Authorization', `Bearer ${token}`)
         .send({
           messages: [{ role: 'user', content: question }],
         });
@@ -49,6 +56,7 @@ describe('AiController (e2e)', () => {
     it('returns a response with a messages array containing multiple entries', async () => {
       const res = await request(getHttpServer())
         .post('/api/ai/chat')
+        .set('Authorization', `Bearer ${token}`)
         .send({
           messages: [
             { role: 'system', content: '你是水族助手' },
@@ -69,6 +77,7 @@ describe('AiController (e2e)', () => {
     it('returns a response even with empty messages', async () => {
       const res = await request(getHttpServer())
         .post('/api/ai/chat')
+        .set('Authorization', `Bearer ${token}`)
         .send({ messages: [] });
 
       expect(res.status).toBe(201);
@@ -83,6 +92,7 @@ describe('AiController (e2e)', () => {
     it('returns a response when messages field is omitted', async () => {
       const res = await request(getHttpServer())
         .post('/api/ai/chat')
+        .set('Authorization', `Bearer ${token}`)
         .send({});
 
       expect(res.status).toBe(201);
