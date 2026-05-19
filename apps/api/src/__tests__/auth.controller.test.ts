@@ -17,24 +17,25 @@ describe('AuthController', () => {
   });
 
   describe('POST /api/auth/wechat-login', () => {
-    it('returns 201 with token, user, and session', async () => {
+    it('returns 201 with accessToken, user, and session', async () => {
       const res = await request(getHttpServer())
         .post('/api/auth/wechat-login')
         .send({ code: 'test-code-1' });
 
       expect(res.status).toBe(201);
-      expect(res.body).toHaveProperty('token');
+      expect(res.body).toHaveProperty('accessToken');
       expect(res.body).toHaveProperty('user');
       expect(res.body).toHaveProperty('session');
     });
 
-    it('returns a token that contains "demo-token-"', async () => {
+    it('returns a JWT accessToken', async () => {
       const res = await request(getHttpServer())
         .post('/api/auth/wechat-login')
         .send({ code: 'test-code-2' });
 
       expect(res.status).toBe(201);
-      expect(res.body.token).toContain('demo-token-');
+      expect(res.body.accessToken).toBeTruthy();
+      expect(res.body.accessToken.split('.')).toHaveLength(3);
     });
 
     it('returns session.openid as mock-openid-{code}', async () => {
@@ -57,21 +58,17 @@ describe('AuthController', () => {
       expect(res.body.user.openId).toBe('mock-openid-create-user');
     });
 
-    it('upserts user on second call with same code (same openid)', async () => {
+    it('upserts user on second call with same code', async () => {
       const first = await request(getHttpServer())
         .post('/api/auth/wechat-login')
         .send({ code: 'upsert-test' });
 
-      // Clear only non-user tables to preserve the user for upsert verification
       const second = await request(getHttpServer())
         .post('/api/auth/wechat-login')
         .send({ code: 'upsert-test' });
 
       expect(first.status).toBe(201);
       expect(second.status).toBe(201);
-      // Same user returned for the same openid
-      expect(first.body.user.openId).toBe('mock-openid-upsert-test');
-      expect(second.body.user.openId).toBe('mock-openid-upsert-test');
       expect(first.body.user.id).toBe(second.body.user.id);
     });
 

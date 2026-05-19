@@ -16,12 +16,11 @@ describe('useAquariumStore', () => {
     mockedListAquariums.mockReset();
   });
 
-  it('has demoAquariums as initial state', async () => {
+  it('has empty array as initial state', async () => {
     const { useAquariumStore } = await import('../../store/aquarium');
     const state = useAquariumStore.getState();
-    expect(state.aquariums).toHaveLength(1);
-    expect(state.aquariums[0].name).toBe('南美小型灯鱼缸');
-    expect(state.selectedId).toBe('demo-aquarium-community');
+    expect(state.aquariums).toHaveLength(0);
+    expect(state.selectedId).toBeUndefined();
     expect(state.loading).toBe(false);
   });
 
@@ -50,22 +49,20 @@ describe('useAquariumStore', () => {
     expect(useAquariumStore.getState().selectedId).toBe('tank-2');
   });
 
-  it('falls back to demo when API returns empty array', async () => {
+  it('sets empty array when API returns empty array', async () => {
     mockedListAquariums.mockResolvedValue([]);
     const { useAquariumStore } = await import('../../store/aquarium');
     await useAquariumStore.getState().loadAquariums();
     const state = useAquariumStore.getState();
-    expect(state.aquariums).toHaveLength(1);
-    expect(state.aquariums[0].name).toBe('南美小型灯鱼缸');
+    expect(state.aquariums).toHaveLength(0);
   });
 
-  it('falls back to demo when API throws', async () => {
+  it('sets empty array when API throws', async () => {
     mockedListAquariums.mockRejectedValue(new Error('network error'));
     const { useAquariumStore } = await import('../../store/aquarium');
     await useAquariumStore.getState().loadAquariums();
     const state = useAquariumStore.getState();
-    expect(state.aquariums).toHaveLength(1);
-    expect(state.aquariums[0].name).toBe('南美小型灯鱼缸');
+    expect(state.aquariums).toHaveLength(0);
     expect(state.loading).toBe(false);
   });
 
